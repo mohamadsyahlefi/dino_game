@@ -46,65 +46,78 @@ class Dino:
             self._y = HEIGHT - DINO_HEIGHT
 
     def collides_with(self, obstacle):
-        return (self._x < obstacle.x + OBSTACLE_WIDTH and
-                self._x + DINO_WIDTH > obstacle.x and
-                self._y < obstacle.y + OBSTACLE_HEIGHT and
-                self._y + DINO_HEIGHT > obstacle.y)
+        obstacle_x, obstacle_y = obstacle.get_position()
+        return (self._x < obstacle_x + OBSTACLE_WIDTH and
+                self._x + DINO_WIDTH > obstacle_x and
+                self._y < obstacle_y + OBSTACLE_HEIGHT and
+                self._y + DINO_HEIGHT > obstacle_y)
 
 # Kelas dasar untuk Rintangan
 class Obstacle:
     def __init__(self, x, y):
-        self.x = x
-        self.y = y
+        self._x = x
+        self._y = y
 
     def draw(self):
         raise NotImplementedError("Metode ini harus diimplementasikan oleh subclass")
 
     def update(self, speed):
-        self.x -= speed
+        self._x -= speed
 
     def is_off_screen(self):
-        return self.x < 0
+        return self._x < 0
+
+    def get_position(self):
+        return self._x, self._y
 
 # Kelas untuk Rintangan Spesifik
 class SingleObstacle(Obstacle):
     def __init__(self, x, y):
         super().__init__(x, y)
-        self.y = HEIGHT - OBSTACLE_HEIGHT - 20  # Menyesuaikan posisi Y agar sejajar dengan Dinosaurus
+        self._y = HEIGHT - OBSTACLE_HEIGHT - 20
 
     def draw(self):
-        obstacle_scaled = pygame.transform.scale(obstacle_image, (OBSTACLE_WIDTH, OBSTACLE_HEIGHT))
-        screen.blit(obstacle_scaled, (self.x, self.y))
+        try:
+            obstacle_scaled = pygame.transform.scale(obstacle_image, (OBSTACLE_WIDTH, OBSTACLE_HEIGHT))
+            screen.blit(obstacle_scaled, (self._x, self._y))
+        except Exception as e:
+            print(f"Error saat menggambar rintangan: {e}")
 
 class StackedObstacle(Obstacle):
     def __init__(self, x, y):
         super().__init__(x, y)
-        self.y = HEIGHT - OBSTACLE_HEIGHT - 20  # Menyesuaikan posisi Y agar sejajar dengan Dinosaurus
+        self._y = HEIGHT - OBSTACLE_HEIGHT - 20
 
     def draw(self):
-        obstacle_scaled = pygame.transform.scale(obstacle_image, (OBSTACLE_WIDTH, OBSTACLE_HEIGHT))
-        screen.blit(obstacle_scaled, (self.x, self.y))
-        screen.blit(obstacle_scaled, (self.x, self.y - OBSTACLE_HEIGHT))
+        try:
+            obstacle_scaled = pygame.transform.scale(obstacle_image, (OBSTACLE_WIDTH, OBSTACLE_HEIGHT))
+            screen.blit(obstacle_scaled, (self._x, self._y))
+            screen.blit(obstacle_scaled, (self._x, self._y - OBSTACLE_HEIGHT))
+        except Exception as e:
+            print(f"Error saat menggambar rintangan bertumpuk: {e}")
 
 class DoubleObstacle(Obstacle):
     def __init__(self, x, y):
         super().__init__(x, y)
-        self.y = HEIGHT - OBSTACLE_HEIGHT - 20  # Menyesuaikan posisi Y agar sejajar dengan Dinosaurus
+        self._y = HEIGHT - OBSTACLE_HEIGHT - 20
 
     def draw(self):
-        obstacle_scaled = pygame.transform.scale(obstacle_image, (OBSTACLE_WIDTH, OBSTACLE_HEIGHT))
-        screen.blit(obstacle_scaled, (self.x, self.y))
-        screen.blit(obstacle_scaled, (self.x + OBSTACLE_WIDTH, self.y))
+        try:
+            obstacle_scaled = pygame.transform.scale(obstacle_image, (OBSTACLE_WIDTH, OBSTACLE_HEIGHT))
+            screen.blit(obstacle_scaled, (self._x, self._y))
+            screen.blit(obstacle_scaled, (self._x + OBSTACLE_WIDTH, self._y))
+        except Exception as e:
+            print(f"Error saat menggambar rintangan ganda: {e}")
 
 class VerticalObstacle(Obstacle):
     def __init__(self, x, y):
         super().__init__(x, y)
-        self.y = HEIGHT - OBSTACLE_HEIGHT - 20  # Menyesuaikan posisi Y agar sejajar dengan Dinosaurus
+        self._y = HEIGHT - OBSTACLE_HEIGHT - 20
 
     def draw(self):
         obstacle_scaled = pygame.transform.scale(obstacle_image, (OBSTACLE_WIDTH, OBSTACLE_HEIGHT))
-        screen.blit(obstacle_scaled, (self.x, self.y))
-        screen.blit(obstacle_scaled, (self.x, self.y - OBSTACLE_HEIGHT))
+        screen.blit(obstacle_scaled, (self._x, self._y))
+        screen.blit(obstacle_scaled, (self._x, self._y - OBSTACLE_HEIGHT))
 
 # Fungsi untuk menampilkan layar akhir
 def display_end_screen(score):
@@ -140,52 +153,57 @@ def display_end_screen(score):
 def main():
     # Langsung mulai permainan tanpa layar awal
     while True:
-        clock = pygame.time.Clock()
-        dino = Dino()
-        obstacles = []
-        score = 0
-        run = True
-        obstacle_timer = 0
-        speed = 10
+        try:
+            clock = pygame.time.Clock()
+            dino = Dino()
+            obstacles = []
+            score = 0
+            run = True
+            obstacle_timer = 0
+            speed = 10
 
-        while run:
-            clock.tick(30)
-            screen.blit(background_image, (0, 0))
+            while run:
+                clock.tick(30)
+                screen.blit(background_image, (0, 0))
 
-            font = pygame.font.Font(None, 36)
-            score_text = font.render(f'Skor: {score}', True, BLACK)
-            screen.blit(score_text, (10, 10))
+                font = pygame.font.Font(None, 36)
+                score_text = font.render(f'Skor: {score}', True, BLACK)
+                screen.blit(score_text, (10, 10))
 
-            obstacle_timer += 1
-            if obstacle_timer > 60:
-                x_position = WIDTH
-                obstacle_type = random.choice([SingleObstacle, StackedObstacle, DoubleObstacle, VerticalObstacle])
-                obstacles.append(obstacle_type(x_position, HEIGHT - OBSTACLE_HEIGHT - 10))
-                obstacle_timer = 0
+                obstacle_timer += 1
+                if obstacle_timer > 60:
+                    x_position = WIDTH
+                    obstacle_type = random.choice([SingleObstacle, StackedObstacle, DoubleObstacle, VerticalObstacle])
+                    obstacles.append(obstacle_type(x_position, HEIGHT - OBSTACLE_HEIGHT - 10))
+                    obstacle_timer = 0
 
-            dino.draw()
-            dino.update()
+                dino.draw()
+                dino.update()
 
-            for obstacle in obstacles:
-                obstacle.draw()
-                obstacle.update(speed)
-                if obstacle.is_off_screen():
-                    obstacles.remove(obstacle)
-                    score += 1
-                if dino.collides_with(obstacle):
-                    run = False
+                for obstacle in obstacles:
+                    obstacle.draw()
+                    obstacle.update(speed)
+                    if obstacle.is_off_screen():
+                        obstacles.remove(obstacle)
+                        score += 1
+                    if dino.collides_with(obstacle):
+                        run = False
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    exit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE and not dino._jump:
-                        dino._jump = True
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        exit()
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_SPACE and not dino._jump:
+                            dino._jump = True
 
-            pygame.display.update()
+                pygame.display.update()
 
-        display_end_screen(score)
+            display_end_screen(score)
+
+        except Exception as e:
+            print(f"Error dalam permainan: {e}")
+            break
 
 if __name__ == "__main__":
     main()
